@@ -1,6 +1,4 @@
 require 'sinatra/base'
-require 'active_support'
-require 'active_record'
 require 'delayed_job'
 
 class DelayedJobWeb < Sinatra::Base
@@ -70,7 +68,8 @@ class DelayedJobWeb < Sinatra::Base
 
   %w(enqueued working pending failed).each do |page|
     get "/#{page}" do
-      @jobs     = delayed_jobs(page.to_sym, @queues).order('created_at desc, id desc').offset(start).limit(per_page)
+      @jobs = delayed_jobs(page.to_sym, @queues).all(:order => [:id.desc], 
+          :offset => start, :limit => per_page)
       @all_jobs = delayed_jobs(page.to_sym, @queues)
       erb page.to_sym
     end
@@ -82,13 +81,13 @@ class DelayedJobWeb < Sinatra::Base
   end
 
   get "/requeue/:id" do
-    job = delayed_job.find(params[:id])
+    job = delayed_job.get(params[:id])
     job.update_attributes(:run_at => Time.now, :failed_at => nil)
     redirect back
   end
 
   get "/reload/:id" do
-    job = delayed_job.find(params[:id])
+    job = delayed_job.get(params[:id])
     job.update_attributes(:run_at => Time.now, :failed_at => nil, :locked_by => nil, :locked_at => nil, :last_error => nil, :attempts => 0)
     redirect back
   end
@@ -104,7 +103,12 @@ class DelayedJobWeb < Sinatra::Base
   end
 
   def delayed_jobs(type, queues = [])
-    delayed_job.where(delayed_job_sql(type, queues))
+    sql = "SELECT id FROM delayed_jobs"
+    where_clause = delayed_job_sql(type, queues)
+    sql << " WHERE " << where_clause   unless where_clause.empty?
+
+    ids = repository.adapter.select(sql)
+    delayed_job.all(id: ids)
   end
 
   def delayed_job_sql(type, queues = [])

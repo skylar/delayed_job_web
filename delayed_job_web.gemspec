@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = "delayed_job_web"
-  s.version = "1.2.5"
+  s.version = "1.2.6.dm.pre"
 
   s.authors = ["Erick Schmitt"]
   s.date = "2014-01-29"
@@ -48,7 +48,7 @@ Gem::Specification.new do |s|
   s.summary = "Web interface for delayed_job"
 
   s.add_runtime_dependency(%q<sinatra>, [">= 0.9.2"])
-  s.add_runtime_dependency(%q<activerecord>, ["> 3.0.0"])
+  s.add_runtime_dependency(%q<dm-core>, ["> 1.2.0"])
   s.add_runtime_dependency(%q<delayed_job>, ["> 2.0.3"])
   s.add_development_dependency(%q<shoulda>, [">= 0"])
   s.add_development_dependency(%q<rack-test>, [">= 0"])
